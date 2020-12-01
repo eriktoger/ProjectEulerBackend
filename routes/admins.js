@@ -64,6 +64,26 @@ router.patch("/", auth, async (req, res) => {
   }
 });
 
+router.patch("/:id", superAuth, async (req, res) => {
+  try {
+    let admin = await Admin.findOne({ _id: req.params.id });
+    if (!admin) {
+      return res.status(400).json({ msg: "Admin do not exists" });
+    }
+
+    admin.isSuperAdmin = !admin.isSuperAdmin;
+
+    await admin.save();
+    return res.status(200).json({
+      msg: "Is super admin toggled",
+      isSuperAdmin: admin.isSuperAdmin,
+    });
+  } catch (e) {
+    console.log("error ", e.message);
+    return res.status(500).json({ msg: "Server error" });
+  }
+});
+
 router.get("/", superAuth, async (req, res) => {
   try {
     const admins = await Admin.find().select("-password");

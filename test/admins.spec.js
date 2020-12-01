@@ -89,6 +89,19 @@ describe("Should not pass the middle wear", function () {
         done();
       });
   });
+
+  it("it should get 401 because it lacks superauth", function (done) {
+    supertest(app)
+      .patch("/admin/1")
+      .set({ "x-auth-token": myToken })
+      .expect(401)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+        done();
+      });
+  });
 });
 
 describe("Needs DB and JWT", function () {
@@ -127,7 +140,7 @@ describe("Needs DB and JWT", function () {
       });
   });
 
-  it("Add, Login, Change Password and Remove Admin", async function () {
+  it("Add, Login, Change Password, Toggle isSuperAdmin and Remove Admin", async function () {
     let id;
     let newToken;
     await supertest(app)
@@ -146,6 +159,15 @@ describe("Needs DB and JWT", function () {
       .expect(200)
       .then((res) => {
         newToken = res.body.token;
+      });
+
+    await supertest(app)
+      .patch(`/admin/${id}`)
+      .set({ "x-auth-token": myToken })
+      .expect(200)
+      .then((res) => {
+        assert.strictEqual(res.body.msg, "Is super admin toggled");
+        assert.strictEqual(res.body.isSuperAdmin, false);
       });
 
     await supertest(app)
